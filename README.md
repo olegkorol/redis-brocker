@@ -115,7 +115,7 @@ docker-compose -f docker-compose-streams.yml down
 | **Message Replay** | ❌ No | ✅ Yes |
 | **Performance** | Faster (simpler) | Slightly slower (more features) |
 
-### 🎯 When to Use Which Approach
+### When to Use Which Approach
 
 **Choose Redis Lists when:**
 
