@@ -8,7 +8,7 @@ from datetime import datetime
 import uuid
 
 def signal_handler(sig, frame):
-    print('\nShutting down subscriber...', flush=True)
+    print('\nShutting down subscriber...')
     sys.exit(0)
 
 def connect_to_redis():
@@ -29,13 +29,13 @@ def connect_to_redis():
             
             # Test the connection
             redis_client.ping()
-            print(f"Successfully connected to Redis on attempt {attempt + 1}", flush=True)
+            print(f"Successfully connected to Redis on attempt {attempt + 1}")
             return redis_client
             
         except redis.RedisError as e:
-            print(f"Failed to connect to Redis (attempt {attempt + 1}/{max_retries}): {e}", flush=True)
+            print(f"Failed to connect to Redis (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                print(f"Waiting {retry_delay} seconds before retry...", flush=True)
+                print(f"Waiting {retry_delay} seconds before retry...")
                 time.sleep(retry_delay)
                 retry_delay = min(retry_delay * 2, 10)  # Exponential backoff
             else:
@@ -46,10 +46,10 @@ def setup_consumer_group(redis_client):
     try:
         # Create consumer group if it doesn't exist
         redis_client.xgroup_create('message_stream', 'processors', id='0', mkstream=True)
-        print('Created consumer group "processors"', flush=True)
+        print('Created consumer group "processors"')
     except redis.RedisError as e:
         if 'BUSYGROUP' in str(e):
-            print('Consumer group "processors" already exists', flush=True)
+            print('Consumer group "processors" already exists')
         else:
             raise
 
@@ -65,8 +65,8 @@ def main():
     
     # Generate unique consumer name
     consumer_name = f"consumer-{uuid.uuid4().hex[:8]}"
-    print(f"Starting consumer: {consumer_name}", flush=True)
-    print("Connected to Redis Streams, waiting for messages...", flush=True)
+    print(f"Starting consumer: {consumer_name}")
+    print("Connected to Redis Streams, waiting for messages...")
     
     # Subscribe to messages using Redis Streams
     while True:
@@ -84,12 +84,12 @@ def main():
             if messages:
                 for stream_name, stream_messages in messages:
                     for message_id, fields in stream_messages:
-                        print(f"🔄 Processing message {message_id} from {stream_name}:", flush=True)
-                        print(f"  ID: {fields.get('id')}", flush=True)
-                        print(f"  Content: {fields.get('content')}", flush=True)
-                        print(f"  Timestamp: {fields.get('timestamp')}", flush=True)
-                        print(f"  Sender: {fields.get('sender')}", flush=True)
-                        print(f"  Received at: {datetime.now()}", flush=True)
+                        print(f"🔄 Processing message {message_id} from {stream_name}:")
+                        print(f"  ID: {fields.get('id')}")
+                        print(f"  Content: {fields.get('content')}")
+                        print(f"  Timestamp: {fields.get('timestamp')}")
+                        print(f"  Sender: {fields.get('sender')}")
+                        print(f"  Received at: {datetime.now()}")
                         
                         # Simulate processing work
                         time.sleep(0.5)
@@ -97,17 +97,17 @@ def main():
                         # IMPORTANT: Acknowledge the message after successful processing
                         try:
                             redis_client.xack('message_stream', 'processors', message_id)
-                            print(f"✅ Acknowledged message {message_id}", flush=True)
+                            print(f"✅ Acknowledged message {message_id}")
                         except redis.RedisError as e:
-                            print(f"❌ Failed to acknowledge message {message_id}: {e}", flush=True)
+                            print(f"❌ Failed to acknowledge message {message_id}: {e}")
                         
-                        print("-" * 60, flush=True)
+                        print("-" * 60)
                         
         except redis.RedisError as e:
-            print(f"Redis error: {e}", flush=True)
+            print(f"Redis error: {e}")
             time.sleep(1)
         except Exception as e:
-            print(f"Unexpected error: {e}", flush=True)
+            print(f"Unexpected error: {e}")
             time.sleep(1)
 
 if __name__ == "__main__":
