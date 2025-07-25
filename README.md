@@ -26,7 +26,7 @@ This project includes **two implementations** showcasing different Redis messagi
 
 ```text
 redis-queue-test/
-├── docker-compose-lists.yml          # Redis Lists approach
+├── docker-compose-lists.yml           # Redis Lists approach
 ├── docker-compose-streams.yml         # Redis Streams approach  
 ├── nodejs-publisher/                  # Simple publisher (Lists)
 │   ├── app.js
@@ -114,7 +114,23 @@ docker-compose -f docker-compose-streams.yml down
 | **Message IDs** | ❌ No built-in | ✅ Auto-generated |
 | **Message Replay** | ❌ No | ✅ Yes |
 | **Performance** | Faster (simpler) | Slightly slower (more features) |
-| **Redis Port** | 6380 | 6381 |
+
+### 🎯 When to Use Which Approach
+
+**Choose Redis Lists when:**
+
+- ✅ High throughput is priority
+- ✅ Simple use case
+- ✅ Occasional message loss is acceptable
+- ✅ Low latency required
+
+**Choose Redis Streams when:**
+
+- ✅ Message delivery guarantees required
+- ✅ Need consumer groups for load balancing
+- ✅ Message replay capability needed
+- ✅ Enterprise/production environment
+- ✅ Failure recovery is important
 
 ## 📨 Message Format
 
@@ -171,20 +187,3 @@ docker-compose -f docker-compose-streams.yml build nodejs-publisher-streams
 docker-compose -f docker-compose-streams.yml build python-subscriber-streams
 docker-compose -f docker-compose-streams.yml up
 ```
-
-## 🎯 When to Use Which Approach
-
-**Choose Redis Lists when:**
-
-- ✅ High throughput is priority
-- ✅ Simple use case
-- ✅ Occasional message loss is acceptable
-- ✅ Low latency required
-
-**Choose Redis Streams when:**
-
-- ✅ Message delivery guarantees required
-- ✅ Need consumer groups for load balancing
-- ✅ Message replay capability needed
-- ✅ Enterprise/production environment
-- ✅ Failure recovery is important
