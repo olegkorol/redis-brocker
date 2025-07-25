@@ -1,6 +1,6 @@
-# Redis Queue Message Broker Experiment
+# Redis Queue as Message Broker (RQMB)
 
-This project demonstrates a message broker setup using Redis with a Node.js publisher and Python subscriber running in Docker containers.
+This project demonstrates a message-broker setup using Redis with a Node.js publisher and Python subscriber running in Docker containers.
 
 ## Architecture
 
@@ -11,7 +11,7 @@ This project demonstrates a message broker setup using Redis with a Node.js publ
 ## Project Structure
 
 ```text
-redis-queue-test/
+rqmb-docker/
 ├── docker-compose.yml
 ├── nodejs-publisher/
 │   ├── app.js
