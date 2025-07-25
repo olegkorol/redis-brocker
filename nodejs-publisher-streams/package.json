@@ -1,0 +1,14 @@
+{
+  "name": "nodejs-redis-publisher",
+  "version": "1.0.0",
+  "description": "Node.js Redis message publisher",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "redis": "^4.6.0"
+  },
+  "author": "",
+  "license": "MIT"
+}

@@ -1,86 +1,124 @@
-# Redis Queue as Message Broker (RQMB)
+# Redis as Message Broker
 
-This project demonstrates a message-broker setup using Redis with a Node.js publisher and Python subscriber running in Docker containers.
+This project demonstrates **two different approaches** for a message-broker setup using Redis with a Node.js publisher and a Python subscriber running in Docker containers.
 
-## Architecture
+## 🏗️ Architecture Overview
 
-- **Redis**: Message broker using Redis lists as queues
-- **Node.js Publisher**: Sends messages to the Redis queue every 3 seconds
-- **Python Subscriber**: Consumes messages from the Redis queue
+This project includes **two implementations** showcasing different Redis messaging patterns:
 
-## Project Structure
+### **Approach 1: Redis Lists (Simple Queue)**
+
+- **Data Structure**: Redis Lists (`LPUSH`/`BRPOP`)
+- **Behavior**: Simple FIFO queue - fire-and-forget
+- **Message Lifecycle**: Messages are **permanently removed** when consumed
+- **Acknowledgment**: ❌ None - if consumer crashes, message is **lost forever**
+- **Use Case**: Fast, lightweight messaging where occasional message loss is acceptable
+
+### **Approach 2: Redis Streams (Reliable Queue)**
+
+- **Data Structure**: Redis Streams (`XADD`/`XREADGROUP`)
+- **Behavior**: Advanced message queue with consumer groups and acknowledgment
+- **Message Lifecycle**: Messages **persist** until explicitly acknowledged with `XACK`
+- **Acknowledgment**: ✅ Required - messages remain in stream until acknowledged
+- **Use Case**: Enterprise-grade messaging where reliability and message delivery guarantees are crucial
+
+## 📁 Project Structure
 
 ```text
-rqmb-docker/
-├── docker-compose.yml
-├── nodejs-publisher/
+redis-queue-test/
+├── docker-compose-lists.yml          # Redis Lists approach
+├── docker-compose-streams.yml         # Redis Streams approach  
+├── nodejs-publisher/                  # Simple publisher (Lists)
 │   ├── app.js
 │   ├── package.json
 │   └── Dockerfile
-├── python-subscriber/
+├── python-subscriber/                 # Simple subscriber (Lists)
+│   ├── app.py
+│   ├── requirements.txt
+│   └── Dockerfile
+├── nodejs-publisher-streams/          # Advanced publisher (Streams)
+│   ├── app.js
+│   ├── package.json
+│   └── Dockerfile
+├── python-subscriber-streams/         # Advanced subscriber (Streams)
 │   ├── app.py
 │   ├── requirements.txt
 │   └── Dockerfile
 └── README.md
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
-1. **Build and run all services:**
+### **Option 1: Redis Lists (Simple Queue)**
 
-   ```bash
-   docker-compose up --build
-   ```
+```bash
+# Build and run Redis Lists version
+docker-compose -f docker-compose-lists.yml up --build
 
-2. **Run in detached mode:**
+# Run in detached mode
+docker-compose -f docker-compose-lists.yml up --build -d
 
-   ```bash
-   docker-compose up --build -d
-   ```
+# View logs
+docker-compose -f docker-compose-lists.yml logs -f
 
-3. **View logs:**
+# View specific service logs
+docker-compose -f docker-compose-lists.yml logs -f nodejs-publisher
+docker-compose -f docker-compose-lists.yml logs -f python-subscriber
 
-   ```bash
-   # All services
-   docker-compose logs -f
-   
-   # Specific service
-   docker-compose logs -f nodejs-publisher
-   docker-compose logs -f python-subscriber
-   ```
+# Stop services
+docker-compose -f docker-compose-lists.yml down
+```
 
-4. **Stop the services:**
+### **Option 2: Redis Streams (Reliable Queue)**
 
-   ```bash
-   docker-compose down
-   ```
+```bash
+# Build and run Redis Streams version
+docker-compose -f docker-compose-streams.yml up --build
 
-5. **Stop and remove volumes:**
+# Run in detached mode
+docker-compose -f docker-compose-streams.yml up --build -d
 
-   ```bash
-   docker-compose down -v
-   ```
+# View logs
+docker-compose -f docker-compose-streams.yml logs -f
 
-## How it Works
+# View specific service logs
+docker-compose -f docker-compose-streams.yml logs -f nodejs-publisher-streams
+docker-compose -f docker-compose-streams.yml logs -f python-subscriber-streams
 
-1. **Node.js Publisher** (`nodejs-publisher`):
-   - Connects to Redis
-   - Publishes a new message every 3 seconds
-   - Uses `LPUSH` to add messages to the `message_queue` list
+# Stop services
+docker-compose -f docker-compose-streams.yml down
+```
 
-2. **Python Subscriber** (`python-subscriber`):
-   - Connects to Redis
-   - Uses `BRPOP` (blocking right pop) to consume messages
-   - Processes messages and displays them with timestamps
+## 🔄 How Each Approach Works
 
-3. **Redis**:
-   - Acts as the message broker
-   - Uses Redis lists to implement a FIFO queue
-   - Persists data using AOF (Append Only File)
+### **Redis Lists Approach:**
 
-## Message Format
+1. **Node.js Publisher**: Uses `LPUSH` to add messages to `message_queue` list
+2. **Python Subscriber**: Uses `BRPOP` to consume messages (blocking pop)
+3. **Message Flow**: `Publisher → Redis List → Consumer` (message deleted on consumption)
 
-Messages are JSON objects with the following structure:
+### **Redis Streams Approach:**
+
+1. **Node.js Publisher**: Uses `XADD` to add messages to `message_stream`
+2. **Python Subscriber**: Uses `XREADGROUP` to consume messages from consumer group
+3. **Message Flow**: `Publisher → Redis Stream → Consumer Group → XACK` (message persists until acknowledged)
+
+## 📊 Feature Comparison
+
+| Feature | Redis Lists | Redis Streams |
+|---------|-------------|---------------|
+| **Message Persistence** | Deleted on consumption | Persists until ACK |
+| **Consumer Groups** | ❌ No | ✅ Yes |
+| **Message Acknowledgment** | ❌ No | ✅ Yes (`XACK`) |
+| **Failure Recovery** | ❌ Messages lost | ✅ Unacked messages reprocessed |
+| **Message IDs** | ❌ No built-in | ✅ Auto-generated |
+| **Message Replay** | ❌ No | ✅ Yes |
+| **Performance** | Faster (simpler) | Slightly slower (more features) |
+| **Redis Port** | 6380 | 6381 |
+
+## 📨 Message Format
+
+**Redis Lists** (JSON string):
 
 ```json
 {
@@ -91,29 +129,62 @@ Messages are JSON objects with the following structure:
 }
 ```
 
-## Docker Services
+**Redis Streams** (key-value fields):
 
-- **redis**: Redis 8 Alpine with persistence enabled
-- **nodejs-publisher**: Node.js 22 Alpine with Redis client
-- **python-subscriber**: Python 3.11 Slim with Redis client
+```text
+id: "1"
+timestamp: "2024-01-01T12:00:00.000Z"
+content: "Hello from Node.js publisher! Message #1"
+sender: "nodejs-app"
+```
 
-All services are connected through a custom bridge network for secure communication.
+## 🐳 Docker Services
 
-## Development
+### **Lists Version:**
 
-To modify the applications:
+- **redis**: Redis 8 Alpine (exposed port 6380 – internal port 6379)
+- **nodejs-publisher**: Node.js 22 Alpine
+- **python-subscriber**: Python 3.11 Alpine
 
-1. Make changes to the source code
-2. Rebuild the specific service:
+### **Streams Version:**
 
-   ```bash
-   docker-compose build nodejs-publisher
-   # or
-   docker-compose build python-subscriber
-   ```
+- **redis**: Redis 8 Alpine (exposed port 6380 – internal port 6379)
+- **nodejs-publisher-streams**: Node.js 22 Alpine
+- **python-subscriber-streams**: Python 3.11 Alpine
 
-3. Restart the services:
+## 🛠️ Development
 
-   ```bash
-   docker-compose up
-   ```
+### **For Lists version:**
+
+```bash
+# Make changes, then rebuild
+docker-compose -f docker-compose-lists.yml build nodejs-publisher
+docker-compose -f docker-compose-lists.yml build python-subscriber
+docker-compose -f docker-compose-lists.yml up
+```
+
+### **For Streams version:**
+
+```bash
+# Make changes, then rebuild
+docker-compose -f docker-compose-streams.yml build nodejs-publisher-streams
+docker-compose -f docker-compose-streams.yml build python-subscriber-streams
+docker-compose -f docker-compose-streams.yml up
+```
+
+## 🎯 When to Use Which Approach
+
+**Choose Redis Lists when:**
+
+- ✅ High throughput is priority
+- ✅ Simple use case
+- ✅ Occasional message loss is acceptable
+- ✅ Low latency required
+
+**Choose Redis Streams when:**
+
+- ✅ Message delivery guarantees required
+- ✅ Need consumer groups for load balancing
+- ✅ Message replay capability needed
+- ✅ Enterprise/production environment
+- ✅ Failure recovery is important
