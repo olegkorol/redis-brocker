@@ -59,7 +59,7 @@ def main():
                 queue_name, message_data = result
                 message = json.loads(message_data)
                 
-                print(f"Received message #{message['id']} from queue {queue_name} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:")
+                print(f"Received message #{message['id']} from queue {queue_name} at {datetime.now()}:")
                 print(f"  Timestamp: {message['timestamp']}")
                 print(f"  Sender: {message['sender']}")
                 print(f"  Content: {message['content']}")
