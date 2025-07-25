@@ -1,0 +1,53 @@
+services:
+  redis:
+    image: redis:8-alpine
+    container_name: redis-broker
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - redis_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  nodejs-publisher:
+    build:
+      context: ./nodejs-publisher
+      dockerfile: Dockerfile
+    container_name: nodejs-publisher
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - redis_network
+    restart: unless-stopped
+
+  python-subscriber:
+    build:
+      context: ./python-subscriber
+      dockerfile: Dockerfile
+    container_name: python-subscriber
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    networks:
+      - redis_network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+
+networks:
+  redis_network:
+    driver: bridge

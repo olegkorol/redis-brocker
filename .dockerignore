@@ -1,0 +1,17 @@
+# Node.js
+nodejs-publisher/node_modules
+nodejs-publisher/npm-debug.log
+nodejs-publisher/.env
+
+# Python
+python-subscriber/__pycache__
+python-subscriber/*.pyc
+python-subscriber/.env
+
+# General
+.git
+.gitignore
+.dockerignore
+.DS_Store
+*.log
+README.md 

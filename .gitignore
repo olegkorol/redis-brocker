@@ -1,0 +1,15 @@
+# Node.js
+nodejs-publisher/node_modules/
+nodejs-publisher/.env
+nodejs-publisher/npm-debug.log
+
+# Python
+python-subscriber/__pycache__/
+python-subscriber/*.pyc
+python-subscriber/.env
+
+# macOS
+.DS_Store
+
+# Docker
+*.log
