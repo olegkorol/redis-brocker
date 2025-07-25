@@ -25,7 +25,7 @@ This project includes **two implementations** showcasing different Redis messagi
 ## 📁 Project Structure
 
 ```text
-redis-queue-test/
+redis-brocker/
 ├── docker-compose-lists.yml           # Redis Lists approach
 ├── docker-compose-streams.yml         # Redis Streams approach  
 ├── nodejs-publisher/                  # Simple publisher (Lists)
